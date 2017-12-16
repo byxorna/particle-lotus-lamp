@@ -13,31 +13,30 @@ SYSTEM_MODE(SEMI_AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
 typedef void (*FP)();
+
 #define NUM_LEDS 24
-
+#define LEDS_PIN D6
 #define LED_TYPE NEOPIXEL
-
 #define UPDATES_PER_SECOND 100
 #define MAX_BRIGHTNESS 255
 #define MAX_SATURATION 255
 #define BOOTUP_ANIM_DURATION_MS 2000
-
 #define PATTERN_CHANGE_INTERVAL_MS 15000
 #define PALETTE_CHANGE_INTERVAL_MS 15000
 #define AUTO_CHANGE_PALETTE 1
 #define AUTO_PATTERN_CHANGE true
+#define GLOBAL_BRIGHTNESS 255
 
-uint8_t gBrightness = 255; // global brightness, read from potentiometer
 uint8_t gPattern = 0; // global pattern
-
 uint8_t gPalette = 0; // global palette
 uint8_t gAnimIndex = 0; // animation index for ColorFromPalette
-CFastLED* gLED; // global CFastLED object
 
 unsigned long t_now;                // time now in each loop iteration
 unsigned long t_boot;               // time at bootup
 unsigned long t_pattern_start = 0;  // time last pattern changed
 unsigned long t_palette_start = 0;  // time last palette changed
+
+CFastLED* gLED; // global CFastLED object
 
 /* custom color palettes */
 // orange 255,102,0 FF6600
@@ -74,8 +73,8 @@ void setup() {
 
   // led controller, data pin, clock pin, RGB type (RGB is already defined in particle)
   gLED = new CFastLED();
-  gLED->addLeds<LED_TYPE, D6>(leds, NUM_LEDS);
-  gLED->setBrightness(gBrightness);
+  gLED->addLeds<LED_TYPE, LEDS_PIN>(leds, NUM_LEDS);
+  gLED->setBrightness(GLOBAL_BRIGHTNESS);
   pattern_clear();
   gLED->show();
 
