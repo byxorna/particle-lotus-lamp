@@ -12,8 +12,8 @@ FASTLED_USING_NAMESPACE;
 SYSTEM_MODE(SEMI_AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
-#define NUM_LEDS_PER_STRIP 24
-#define NUM_STRIPS 2
+typedef void (*FP)();
+#define NUM_LEDS 24
 
 #define LED_TYPE NEOPIXEL
 
@@ -25,10 +25,10 @@ SYSTEM_THREAD(ENABLED);
 #define PATTERN_CHANGE_INTERVAL_MS 15000
 #define PALETTE_CHANGE_INTERVAL_MS 15000
 #define AUTO_CHANGE_PALETTE 1
+#define AUTO_PATTERN_CHANGE true
 
-uint8_t gBrightness; // global brightness, read from potentiometer
-uint8_t gPattern; // global pattern
-bool autoPatternChange;
+uint8_t gBrightness = 255; // global brightness, read from potentiometer
+uint8_t gPattern = 0; // global pattern
 
 uint8_t gPalette = 0; // global palette
 uint8_t gAnimIndex = 0; // animation index for ColorFromPalette
@@ -62,37 +62,22 @@ CRGBPalette16 palettes[6] = {
 };
 
 TBlendType currentBlending = LINEARBLEND;
-CRGB leds[NUM_STRIPS*NUM_LEDS_PER_STRIP]; //[NUM_STRIPS][NUM_LEDS_PER_STRIP];
+CRGB leds[NUM_LEDS];
 
 // setup() runs once, when the device is first turned on.
 void setup() {
 
   Serial.begin(9600);
   Serial.println("resetting");
-  xAccelAvg.clear();
-
-  // chill for a sec
-  delay( 4000 );
 
   currentPalette = palettes[0];
-  autoPatternChange = 1;
-  Serial.printlnf("auto pattern changing: %d", autoPatternChange);
-
-  // read initial values from potentiometers for brightness
-  gBrightness = 40;
-  Serial.printlnf("init brightness: %d", gBrightness);
 
   // led controller, data pin, clock pin, RGB type (RGB is already defined in particle)
   gLED = new CFastLED();
-  gLED->addLeds<LED_TYPE, D6>(leds, NUM_LEDS_PER_STRIP*NUM_STRIPS);
+  gLED->addLeds<LED_TYPE, D6>(leds, NUM_LEDS);
   gLED->setBrightness(gBrightness);
   pattern_clear();
   gLED->show();
-
-  // reset pattern from potentiometer
-  gPattern = 0;
-  gPalette = 0;
-  Serial.printlnf("pattern initial setting: %d", gPattern);
 
   t_boot = millis();
   Serial.println("booted up");
@@ -106,7 +91,7 @@ void pattern_slow_pulse() {
   CHSV hsv_led = CHSV(cHue, 255, cBrightness);
   CRGB rgb_led;
   hsv2rgb_rainbow(hsv_led, rgb_led);
-  for( int i = 0; i < NUM_LEDS_PER_STRIP*NUM_STRIPS; i++) {
+  for( int i = 0; i < NUM_LEDS; i++) {
     leds[i] = rgb_led;
   }
 }
@@ -118,8 +103,8 @@ void pattern_cylon_eye() {
   CHSV hsv_led = CHSV(h, 255, 255);
   CRGB rgb_led;
   hsv2rgb_rainbow(hsv_led, rgb_led);
-  uint8_t mappedIndex = beatsin8(60, 0, NUM_LEDS_PER_STRIP*NUM_STRIPS-1);
-  for(int i = 0; i < NUM_LEDS_PER_STRIP*NUM_STRIPS; ++i) {
+  uint8_t mappedIndex = beatsin8(60, 0, NUM_LEDS-1);
+  for(int i = 0; i < NUM_LEDS; ++i) {
     if (mappedIndex == i) {
       leds[i] = rgb_led;
     } else if (addmod8(mappedIndex, 1, 255) == i) {
@@ -137,7 +122,7 @@ void pattern_cylon_eye() {
 void pattern_bootup() {
   uint8_t baseHue = beatsin8(30, 0, 255);
   uint8_t iHue = 0;
-  for(int i = 0; i < NUM_LEDS_PER_STRIP*NUM_STRIPS; ++i) {
+  for(int i = 0; i < NUM_LEDS; ++i) {
     iHue = addmod8(baseHue, 1, 255);
     CHSV hsv_led = CHSV(iHue, 255, 255);
     CRGB rgb_led;
@@ -148,7 +133,7 @@ void pattern_bootup() {
 
 // cycle a rainbow, varying how quickly it rolls around the board
 void pattern_rainbow_waves() {
-  for(int i = 0; i < NUM_LEDS_PER_STRIP*NUM_STRIPS; ++i) {
+  for(int i = 0; i < NUM_LEDS; ++i) {
     uint8_t h = (t_now/8+i)%256;
     CHSV hsv_led = CHSV(h, 255, 255);
     CRGB rgb_led;
@@ -158,20 +143,20 @@ void pattern_rainbow_waves() {
 }
 
 void pattern_clear() {
-  for( int i = 0; i < NUM_LEDS_PER_STRIP*NUM_STRIPS; i++) {
+  for( int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CRGB::Black;
   }
 }
 void pattern_from_palette() {
   uint8_t b = beatsin8(4, 0, 255);
-  for( int i = 0; i < NUM_LEDS_PER_STRIP*NUM_STRIPS; i++) {
+  for( int i = 0; i < NUM_LEDS; i++) {
     leds[i] = ColorFromPalette(currentPalette, gAnimIndex + i + b, MAX_BRIGHTNESS, currentBlending);
   }
   gAnimIndex = addmod8(gAnimIndex, 1, 255);
 }
 
 void pattern_brake_light() {
-  for (int i = 0; i < NUM_STRIPS*NUM_LEDS_PER_STRIP; ++i) {
+  for (int i = 0; i < NUM_LEDS; ++i) {
     leds[i] = CRGB::Red;
   }
 }
@@ -180,7 +165,7 @@ void pattern_brake_light() {
 // This function draws color waves with an ever-changing,
 // widely-varying set of parameters, using a color palette.
 void pattern_palette_waves() {
-  uint8_t numleds = NUM_LEDS_PER_STRIP*NUM_STRIPS;
+  uint8_t numleds = NUM_LEDS;
   static uint16_t sPseudotime = 0;
   static uint16_t sLastMillis = 0;
   static uint16_t sHue16 = 0;
@@ -235,21 +220,20 @@ const FP patternBank[] = {
   &pattern_from_palette,
   &pattern_slow_pulse,
   &pattern_palette_waves,
-  &pattern_rainbow_waves
+  &pattern_rainbow_waves,
+  &pattern_cylon_eye
 };
 
 void loop() {
   t_now = millis();
 
   // increment pattern every PATTERN_CHANGE_INTERVAL_MS
-  if (autoPatternChange) {
+  if (AUTO_PATTERN_CHANGE) {
     if (t_now > t_pattern_start+PATTERN_CHANGE_INTERVAL_MS) {
       gPattern++;
       t_pattern_start = t_now;
       Serial.printlnf("auto pattern->%d", gPattern);
     }
-  } else {
-    gPattern = readModeFromPot();
   }
 
   // increment palette every PALETTE_CHANGE_INTERVAL_MS
@@ -266,11 +250,6 @@ void loop() {
   if (t_boot + BOOTUP_ANIM_DURATION_MS > t_now) {
     // display a bootup pattern for a bit
     pattern_bootup();
-  } else if (accel_lastPos == ACCEL_POSITION_NORMAL) {
-    // pause pattern, cause we are actually upside down!
-    pattern_cylon_eye();
-  } else if (braking || (!braking && (t_brake_end+BRAKE_HOLD_MS > t_now))) {
-    pattern_brake_light();
   } else {
     if (gPattern < NUM_PATTERNS) {
       patternBank[gPattern]();
