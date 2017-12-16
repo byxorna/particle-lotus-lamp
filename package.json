@@ -1,0 +1,22 @@
+{
+  "name": "particle-lotus-lamp",
+  "version": "1.0.0",
+  "description": "arduino code for particle photon lotus lamp",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/byxorna/particle-lotus-lamp.git"
+  },
+  "author": "Gabe Conradi <gabe.conradi@gmail.com>",
+  "license": "APL2.0",
+  "bugs": {
+    "url": "https://github.com/byxorna/particle-lotus-lamp/issues"
+  },
+  "homepage": "https://github.com/byxorna/particle-lotus-lamp#readme",
+  "dependencies": {
+    "particle-cli": "^1.25.0"
+  }
+}
