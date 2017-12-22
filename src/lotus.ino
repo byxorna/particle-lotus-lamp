@@ -14,7 +14,7 @@ SYSTEM_THREAD(ENABLED);
 
 typedef void (*FP)();
 
-#define NUM_LEDS 24
+#define NUM_LEDS 83
 #define LEDS_PIN D6
 #define LED_TYPE NEOPIXEL
 #define UPDATES_PER_SECOND 100
