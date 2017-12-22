@@ -1,6 +1,8 @@
 # particle-lotus-lamp
 Particle Photon arduino code for lotus hanging lamp
 
+[![Lotus LED Lamp](https://img.youtube.com/vi/xRCreEeLZ-c/0.jpg)](https://www.youtube.com/watch?v=xRCreEeLZ-c)
+
 ## Setup
 
 ```
