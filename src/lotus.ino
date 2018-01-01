@@ -14,13 +14,15 @@ SYSTEM_THREAD(ENABLED);
 
 typedef void (*FP)();
 
+#define MOM_NUM_LEDS 83
+#define GABE_NUM_LEDS 83
 #define NUM_LEDS 83
 #define LEDS_PIN D6
 #define LED_TYPE NEOPIXEL
-#define UPDATES_PER_SECOND 100
+#define UPDATES_PER_SECOND 240
 #define MAX_BRIGHTNESS 255
 #define MAX_SATURATION 255
-#define BOOTUP_ANIM_DURATION_MS 6000
+#define BOOTUP_ANIM_DURATION_MS 3000
 #define PATTERN_CHANGE_INTERVAL_MS 60000
 #define PALETTE_CHANGE_INTERVAL_MS 30000
 #define AUTO_CHANGE_PALETTE 1
@@ -84,9 +86,8 @@ void setup() {
 
 void pattern_slow_pulse() {
   // pick a color, and pulse it 
-  //uint8_t bpm = beatsin8(4, 8, 16);
-  uint8_t cBrightness = beatsin8(20, 80, 255);
-  uint8_t cHue = beatsin8(6, 0, 255); // cycle colors every 30s
+  uint8_t cBrightness = beatsin8(20, 120, 255);
+  uint8_t cHue = beatsin8(4, 0, 255);
   CHSV hsv_led = CHSV(cHue, 255, cBrightness);
   CRGB rgb_led;
   hsv2rgb_rainbow(hsv_led, rgb_led);
