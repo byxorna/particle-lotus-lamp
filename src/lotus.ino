@@ -134,7 +134,7 @@ void pattern_bootup() {
 // cycle a rainbow, varying how quickly it rolls around the board
 void pattern_rainbow_waves() {
   for(int i = 0; i < NUM_LEDS; ++i) {
-    uint8_t h = (t_now/8+i)%256;
+    uint8_t h = (t_now/12+i)%256;
     CHSV hsv_led = CHSV(h, 255, 255);
     CRGB rgb_led;
     hsv2rgb_rainbow(hsv_led, rgb_led);
