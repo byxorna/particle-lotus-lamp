@@ -120,7 +120,7 @@ void pattern_cylon_eye() {
 }
 
 void pattern_bootup() {
-  uint8_t baseHue = beatsin8(30, 0, 255);
+  uint8_t baseHue = beatsin8(15, 0, 255);
   uint8_t iHue = 0;
   for(int i = 0; i < NUM_LEDS; ++i) {
     iHue = addmod8(baseHue, 1, 255);
@@ -152,7 +152,10 @@ void pattern_from_palette() {
   for( int i = 0; i < NUM_LEDS; i++) {
     leds[i] = ColorFromPalette(currentPalette, gAnimIndex + i + b, MAX_BRIGHTNESS, currentBlending);
   }
-  gAnimIndex = addmod8(gAnimIndex, 1, 255);
+  // slow down progression by 1/3
+  if (t_now%3 == 0) {
+    gAnimIndex = addmod8(gAnimIndex, 1, 255);
+  }
 }
 
 void pattern_brake_light() {
@@ -217,7 +220,7 @@ void pattern_palette_waves() {
 /** update this with patterns you want to be cycled through **/
 #define NUM_PATTERNS sizeof(patternBank) / sizeof(FP)
 const FP patternBank[] = {
-  &pattern_from_palette,
+  //&pattern_from_palette,
   &pattern_slow_pulse,
   &pattern_palette_waves,
   &pattern_rainbow_waves,
