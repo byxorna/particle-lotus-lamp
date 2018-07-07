@@ -142,28 +142,50 @@ CRGBPalette16 palettes[] = {
 };
 #define PALETTES_COUNT (sizeof(palettes)/sizeof(*palettes))
 
-void  pattern_plasma(CRGB* leds, DeckSettings* s) {                                                 // This is the heart of this program. Sure is short. . . and fast.
+/*vars for pattern_phase_shift_palette*/
+int wave1=0;
+void pattern_phase_shift_palette(NSFastLED::CRGB* leds, DeckSettings* s) {
+  // phase shift
+  wave1 += 8;
+  int phase2 = NSFastLED::beatsin8(7,-64,64);
 
-  int thisPhase = beatsin8(6,-64,64);                           // Setting phase change for a couple of waves.
-  int thatPhase = beatsin8(7,-64,64);
+  for (int k=0; k<NUM_LEDS; k++) {
+    int phase1 = NSFastLED::sin8(3*k + wave1/128);
+    int colorIndex = NSFastLED::cubicwave8((k)+phase1)/2 + NSFastLED::cos8((k*3)+phase2)/2;
 
-  for (int k=0; k<NUM_LEDS; k++) {                              // For each of the LED's in the strand, set a brightness based on a wave as follows:
+    //int bri8 = NSFastLED::cubicwave8(t_now/10.0 + k*10.0); // nice pulsy one direction intensity modulator
+    // generate undulating intensity phases
+    int bri8 = NSFastLED::cubicwave8(t_now/10.0 + NSFastLED::cubicwave8(k*10.0));
 
-    int colorIndex = cubicwave8((k*23)+thisPhase)/2 + cos8((k*15)+thatPhase)/2;           // Create a wave and add a phase change and add another wave with its own phase change.. Hey, you can even change the frequencies if you wish.
-    int thisBright = qsuba(colorIndex, beatsin8(7,0,96));                                 // qsub gives it a bit of 'black' dead space by setting sets a minimum value. If colorIndex < current value of beatsin8(), then bright = 0. Otherwise, bright = colorIndex..
+    //Serial.printlnf("%d %d", k, bri8);
+    leds[k] = ColorFromPalette(s->currentPalette, colorIndex, bri8, currentBlending);
+  }
+}
 
-    leds[k] = ColorFromPalette(s->currentPalette, colorIndex, thisBright, currentBlending);  // Let's now add the foreground colour.
+void  pattern_plasma(NSFastLED::CRGB* leds, DeckSettings* s) {
+
+  int thisPhase = NSFastLED::beatsin8(6,-64,64);
+  int thatPhase = NSFastLED::beatsin8(7,-64,64);
+
+  for (int k=0; k<NUM_LEDS; k++) {
+
+    int colorIndex = NSFastLED::cubicwave8((k*23)+thisPhase)/2 + NSFastLED::cos8((k*15)+thatPhase)/2;
+    int thisBright = NSFastLED::cubicwave8(t_now/10.0 + k*10.0); // nice pulsy one direction intensity modulator
+    //int thisBright = qsuba(colorIndex, NSFastLED::beatsin8(7,0,96));
+
+    leds[k] = ColorFromPalette(s->currentPalette, colorIndex, thisBright, currentBlending);
   }
 }
 
 void pattern_slow_pulse(CRGB* leds, DeckSettings* s) {
   // pick a color, and pulse it 
-  uint8_t cBrightness = beatsin8(20, 120, 255);
+  //uint8_t cBrightness = beatsin8(20, 120, 255);
   uint8_t cHue = beatsin8(4, 0, 255);
-  CHSV hsv_led = CHSV(cHue, 255, cBrightness);
-  CRGB rgb_led;
-  hsv2rgb_rainbow(hsv_led, rgb_led);
   for( int i = 0; i < NUM_LEDS; i++) {
+    int thisBright = NSFastLED::cubicwave8(t_now/10.0 + i*10.0); // nice pulsy one direction intensity modulator
+    CHSV hsv_led = CHSV(cHue, 255, thisBright);
+    CRGB rgb_led;
+    hsv2rgb_rainbow(hsv_led, rgb_led);
     leds[i] = rgb_led;
   }
 }
@@ -300,6 +322,7 @@ void pattern_palette_waves(CRGB* leds, DeckSettings* s) {
 const FP patternBank[] = {
   //&pattern_from_palette,
   &pattern_plasma,
+  &pattern_phase_shift_palette,
   &pattern_slow_pulse,
   &pattern_palette_waves,
   &pattern_rainbow_waves,
@@ -404,13 +427,13 @@ void loop() {
     }
   }
 
-  if (t_boot + BOOTUP_ANIM_DURATION_MS > t_now) {
-    // display a bootup pattern for a bit
-    pattern_bootup(deckA, &deckSettingsA);
-    for (int i = 0; i < NUM_LEDS; ++i) {
-      deckB[i] = deckA[i];
-    }
-  } else {
+  //if (t_boot + BOOTUP_ANIM_DURATION_MS > t_now) {
+  //  // display a bootup pattern for a bit
+  //  pattern_bootup(deckA, &deckSettingsA);
+  //  for (int i = 0; i < NUM_LEDS; ++i) {
+  //    deckB[i] = deckA[i];
+  //  }
+  //} else {
     // fill in patterns on both decks! we will crossfade master output later
     // NOTE: only render to a deck if its "visible" through the crossfader
     if ( !VJ_CROSSFADING_ENABLED || crossfadePosition < 1.0 ) {
@@ -419,7 +442,7 @@ void loop() {
     if ( VJ_CROSSFADING_ENABLED && crossfadePosition > 0 ) {
       patternBank[deckSettingsB.pattern](deckB, &deckSettingsB);
     }
-  }
+  //}
 
   // perform crossfading increment if we are mid pattern change
   if (VJ_CROSSFADING_ENABLED) {
@@ -460,6 +483,11 @@ void loop() {
       masterOutput[i] = deckA[i].lerp8(deckB[i], fract8(255*crossfadePosition));
     } else {
       masterOutput[i] = deckA[i];
+    }
+    if (t_now < + BOOTUP_ANIM_DURATION_MS) {
+      // ramp intensity up slowly, so we fade in when turning on
+      int8_t bri8 = (uint8_t)((t_now*1.0)/BOOTUP_ANIM_DURATION_MS*255.0);
+      masterOutput[i] = masterOutput[i].fadeToBlackBy(255-bri8);
     }
   }
 
