@@ -88,12 +88,54 @@ DEFINE_GRADIENT_PALETTE( es_pinksplash_08_gp ) {
   221, 157,  3,112,
   255, 157,  3,112};
 
+DEFINE_GRADIENT_PALETTE( es_pinksplash_07_gp ) {
+    0, 229,  1,  1,
+   61, 242,  4, 63,
+  101, 255, 12,255,
+  127, 249, 81,252,
+  153, 255, 11,235,
+  193, 244,  5, 68,
+  255, 232,  1,  5};
+
+DEFINE_GRADIENT_PALETTE( Sunset_Real_gp ) {
+    0, 120,  0,  0,
+   22, 179, 22,  0,
+   51, 255,104,  0,
+   85, 167, 22, 18,
+  135, 100,  0,103,
+  198,  16,  0,130,
+  255,   0,  0,160};
+
+DEFINE_GRADIENT_PALETTE( rgi_15_gp ) {
+    0,   4,  1, 31,
+   31,  55,  1, 16,
+   63, 197,  3,  7,
+   95,  59,  2, 17,
+  127,   6,  2, 34,
+  159,  39,  6, 33,
+  191, 112, 13, 32,
+  223,  56,  9, 35,
+  255,  22,  6, 38};
+
+DEFINE_GRADIENT_PALETTE( BlacK_Red_Magenta_Yellow_gp ) {
+    0,   0,  0,  0,
+   42,  42,  0,  0,
+   84, 255,  0,  0,
+  127, 255,  0, 45,
+  170, 255,  0,255,
+  212, 255, 55, 45,
+  255, 255,255,  0};
+
 
 // for effects that are palette based
 CRGBPalette16 palettes[] = {
   Disorient_gp,
   CloudColors_p,
   ForestColors_p,
+  es_pinksplash_07_gp,
+  Sunset_Real_gp,
+  rgi_15_gp,
+  BlacK_Red_Magenta_Yellow_gp,
   es_pinksplash_08_gp,
   OceanColors_p,
   LavaColors_p,
