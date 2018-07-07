@@ -156,7 +156,6 @@ void pattern_bootup(CRGB* leds, DeckSettings* s) {
   if (intensity >= 255.0) {
     v = 255;
   }
-  Serial.printlnf("t=%d i=%d", t_now, v);
   uint8_t baseHue = beatsin8(3, 0, 255);
   uint8_t iHue = 0;
   for(int i = 0; i < NUM_LEDS; ++i) {
